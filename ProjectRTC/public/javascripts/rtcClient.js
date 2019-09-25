@@ -160,6 +160,14 @@ var PeerManager = (function () {
       offer(remoteId);
     },
 	
+	forward: function(remoteId) {
+      send('message', remoteId, { msg: 'w' });
+	},
+	
+	stop: function(remoteId) {
+      send('message', remoteId, { msg: ' ' });
+	},
+	
 	showImage: function(remoteId) {
       send('message', remoteId, { msg: 'showImage' });
 	},
