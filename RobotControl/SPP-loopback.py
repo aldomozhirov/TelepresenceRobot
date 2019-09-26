@@ -17,7 +17,6 @@ except ImportError:
 
 class Profile(dbus.service.Object):
 	fd = -1
-	path = "/tmp/myfifo"
 
 	@dbus.service.method("org.bluez.Profile1",
 					in_signature="", out_signature="")
@@ -45,10 +44,6 @@ class Profile(dbus.service.Object):
 		    while True:
 		        data = server_sock.recv(1024)
 		        print("received: %s" % data)
-		        fifo = open(path, "w")
-		        fifo.write(data)
-		        fifo.close()
-
 			server_sock.send("looping back: %s\n" % data)
 		except IOError:
 		    pass

@@ -110,7 +110,7 @@ int main()
                     motor.SetSpeed(motor.PWM_5_pin, SPEED4);
                     motor.SetSpeed(motor.PWM_6_pin, SPEED4);
                     break;
-             case ' '://STOP
+             case 'x'://STOP
 					motor.run(Motor1, STOP);
                     motor.run(Motor2, STOP);
                     motor.run(Motor3, STOP);
