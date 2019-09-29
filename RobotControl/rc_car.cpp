@@ -24,7 +24,7 @@ int main()
 
        Motor_Control motor;
 
-       cout << "Press any 'g' and then Enter to exit from the aplication..." << endl;
+       cout << "[rc_car] Application Started" << endl;
 	   
        char * myfifo = "/tmp/myfifo"; 
        mkfifo(myfifo, 0666); 
@@ -39,50 +39,34 @@ int main()
              switch (c)
              {
              case 'w'://STRAIGHT
-					motor.run(Motor1, FORWARD);
-                    motor.run(Motor2, FORWARD);
                     motor.run(Motor3, FORWARD);
                     motor.run(Motor4, FORWARD);
                     break;
-             case 's'://REVERSE
-					motor.run(Motor1, BACKWARD);
-                    motor.run(Motor2, BACKWARD);
+             case 'x'://REVERSE
                     motor.run(Motor3, BACKWARD);
                     motor.run(Motor4, BACKWARD);
                     break;
              case 'a'://TURN LEFT
-					motor.run(Motor1, BACKWARD);
-                    motor.run(Motor2, FORWARD);
                     motor.run(Motor3, FORWARD);
                     motor.run(Motor4, BACKWARD);
                     break;
              case 'd'://TURN RIGHT
-					motor.run(Motor1, FORWARD);
-                    motor.run(Motor2, BACKWARD);
                     motor.run(Motor3, BACKWARD);
                     motor.run(Motor4, FORWARD);
                     break;
              case 'q'://ROTARY MOVE LEFT FORWARD
-					motor.run(Motor1, STOP);
-                    motor.run(Motor2, FORWARD);
                     motor.run(Motor3, FORWARD);
                     motor.run(Motor4, STOP);
                     break;
-             case 'e'://ROTARY MOVE LEFT BACKWARD
-					motor.run(Motor1, STOP);
-                    motor.run(Motor2, BACKWARD);
+             case 'z'://ROTARY MOVE LEFT BACKWARD
                     motor.run(Motor3, BACKWARD);
                     motor.run(Motor4, STOP);
                     break;
-             case 'z'://ROTARY MOVE RIGHT FORWARD
-					motor.run(Motor1, FORWARD);
-                    motor.run(Motor2, STOP);
+             case 'e'://ROTARY MOVE RIGHT FORWARD
                     motor.run(Motor3, STOP);
                     motor.run(Motor4, FORWARD);
                     break;
              case 'c'://ROTARY MOVE RIGHT BACKWARD
-					motor.run(Motor1, BACKWARD);
-                    motor.run(Motor2, STOP);
                     motor.run(Motor3, STOP);
                     motor.run(Motor4, BACKWARD);
                     break;
@@ -110,13 +94,11 @@ int main()
                     motor.SetSpeed(motor.PWM_5_pin, SPEED4);
                     motor.SetSpeed(motor.PWM_6_pin, SPEED4);
                     break;
-             case 'x'://STOP
-					motor.run(Motor1, STOP);
-                    motor.run(Motor2, STOP);
+             case 's'://STOP
                     motor.run(Motor3, STOP);
                     motor.run(Motor4, STOP);
                     break;
-             case 'g':
+             case 'g':// CLOSE APPLICATION
                     return 0;
                     break;
              }
@@ -124,7 +106,7 @@ int main()
              close(fd); 
        }
        motor.standby(OFF);
-       cout << "\nClosing application..." << endl;
+       cout << "[rc_car] Closing application..." << endl;
        sleep(1);
        return MRAA_SUCCESS;
 }

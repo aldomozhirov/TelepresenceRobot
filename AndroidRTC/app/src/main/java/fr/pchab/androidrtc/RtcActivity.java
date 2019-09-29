@@ -2,15 +2,11 @@ package fr.pchab.androidrtc;
 
 import android.Manifest;
 import android.app.Activity;
-import android.bluetooth.BluetoothAdapter;
-import android.bluetooth.BluetoothDevice;
-import android.bluetooth.BluetoothSocket;
 import android.content.Intent;
 import android.graphics.Point;
 import android.opengl.GLSurfaceView;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
-import android.util.Log;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager.LayoutParams;
@@ -22,10 +18,7 @@ import org.webrtc.MediaStream;
 import org.webrtc.VideoRenderer;
 import org.webrtc.VideoRendererGui;
 
-import java.io.IOException;
-import java.io.OutputStream;
 import java.util.List;
-import java.util.UUID;
 
 import fr.pchab.webrtcclient.PeerConnectionParameters;
 import fr.pchab.webrtcclient.WebRtcClient;
@@ -59,19 +52,8 @@ public class RtcActivity extends Activity implements WebRtcClient.RtcListener {
     private String mSocketAddress;
     private String callerId;
 
-    private BluetoothAdapter btAdapter;
-    private BluetoothDevice btDevice;
-    private BluetoothSocket btSocket;
-    private OutputStream outStream;
-
     private static final String[] RequiredPermissions = new String[]{Manifest.permission.CAMERA, Manifest.permission.RECORD_AUDIO};
     protected PermissionChecker permissionChecker = new PermissionChecker();
-
-    // Well known SPP UUID, after run intel SPP_loopback.py, you can see this in edison bluetooth
-    private static final UUID SSP_UUID = UUID.fromString("00001101-0000-1000-8000-00805f9b34fb");
-
-    // intel edison bluetooth MAC address 98:4F:EE:04:0E:B5
-    private static String EDISON_ADDRESS = "98:4F:EE:04:6E:E1";
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -117,73 +99,6 @@ public class RtcActivity extends Activity implements WebRtcClient.RtcListener {
         }
 
         checkPermissions();
-        initBluetooth();
-    }
-
-    private void initBluetooth() {
-
-        btAdapter = BluetoothAdapter.getDefaultAdapter();
-
-        if (btAdapter == null) {
-            Toast.makeText(getApplicationContext(), "No bluetooth!", Toast.LENGTH_LONG).show();
-            Log.d(TAG, "onCreate, No bluetooth detect...");
-            //    finish();
-        }
-        else {
-            if (btAdapter.isEnabled()) {
-                Log.d(TAG, "check bluetooth enabled...");
-            } else {
-                Intent intent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-                startActivityForResult(intent, 1);
-            }
-        }
-    }
-
-    //connect bluetooth and init write stream
-    private void bluetoothConnect() {
-        btDevice = btAdapter.getRemoteDevice(EDISON_ADDRESS);
-        if (btDevice == null) {
-            Log.d(TAG,"get remote device fail!");
-            finish();
-        }
-        //
-        try {
-            btSocket = btDevice.createRfcommSocketToServiceRecord(SSP_UUID);
-        } catch (IOException e) {
-            Log.d(TAG,"bluetooth socket create fail.");
-        }
-        //save resource by cancel discovery
-        btAdapter.cancelDiscovery();
-
-        //connect
-        try {
-            btSocket.connect();
-            Log.d(TAG,"Connection established.");
-        } catch ( IOException e) {
-            try {
-                btSocket.close();
-            }catch (IOException e2) {
-                Log.d(TAG,"unable to close socket after connect fail.");
-            }
-        }
-
-        //prepare outStream to send message
-        try {
-            outStream = btSocket.getOutputStream();
-        } catch (IOException e) {
-            Log.d(TAG,"output stream init fail!");
-        }
-    }
-
-    //bluetooth send serial message
-    private void bluetoothSendMsg(String s) {
-        byte [] msgOnBuf;
-        msgOnBuf = s.getBytes();
-        try {
-            outStream.write(msgOnBuf);
-        } catch (IOException e) {
-            Log.d(TAG,"send message fail!");
-        }
     }
 
     private void checkPermissions() {
@@ -207,7 +122,6 @@ public class RtcActivity extends Activity implements WebRtcClient.RtcListener {
         PeerConnectionParameters params = new PeerConnectionParameters(
                 true, false, displaySize.x, displaySize.y, 30, 1, VIDEO_CODEC_VP9, true, 1, AUDIO_CODEC_OPUS, true);
         client = new WebRtcClient(this, mSocketAddress, params, VideoRendererGui.getEGLContext());
-        bluetoothConnect();
     }
 
     @Override
@@ -334,7 +248,6 @@ public class RtcActivity extends Activity implements WebRtcClient.RtcListener {
                 });
                 break;
             default:
-                bluetoothSendMsg(message);
                 break;
         }
     }

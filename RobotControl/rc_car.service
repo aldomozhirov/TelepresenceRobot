@@ -1,0 +1,14 @@
+[Unit]
+Description=RC Car Control Service
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+ExecStart=/home/root/rc_car/rc_car
+User=root
+Restart=always
+RestartSec=1
+WorkingDirectory=/home/root/rc_car/
+
+[Install]
+WantedBy=multi-user.target

@@ -9,35 +9,58 @@
 	<script type="text/javascript" src="javascripts/adapter.js"></script>
 	<script type="text/javascript" src="javascripts/rtcClient.js"></script>
 	
-	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+	<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
 	<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/angularjs/1.3.15/angular.min.js"></script>
 	<script type="text/javascript" src="javascripts/app.js"></script>
 	<script>
+		var inMove = false;
+	
 		$(document).ready(function(){
-			document.addEventListener('keydown', handleKey);
+			document.addEventListener('keydown', handleKeyDown);
+			document.addEventListener('keyup', handleKeyUp);
 		}); 
 		
-		function handleKey(e) {
+		function handleKeyDown(e) {
 		  switch(e.code) {
-			case "ArrowUp":
+			case "KeyW":
 				console.log('forward');
 				robotCommand('w');
+				inMove = true;
 			break;
-			case "ArrowDown":
+			case "KeyX":
 				console.log('backward');
-				robotCommand('s');
+				robotCommand('x');
+				inMove = true;
 			break;
-			case "ArrowLeft":
+			case "KeyA":
 				console.log('turn left');
 				robotCommand('a');
+				inMove = true;
 			break;
-			case "ArrowRight":
+			case "KeyQ":
+				console.log('turn rotary left forward');
+				robotCommand('q');
+				inMove = true;
+			break;
+			case "KeyZ":
+				console.log('turn rotary left backward');
+				robotCommand('z');
+				inMove = true;
+			break;
+			case "KeyD":
 				console.log('turn right');
 				robotCommand('d');
+				inMove = true;
 			break;
-			case "Space":
-				console.log('stop');
-				robotCommand('x');
+			case "KeyE":
+				console.log('turn rotary right forward');
+				robotCommand('e');
+				inMove = true;
+			break;
+			case "KeyC":
+				console.log('turn rotary right backward');
+				robotCommand('c');
+				inMove = true;
 			break;
 			case "Digit1":
 				console.log('speed 1');
@@ -49,7 +72,7 @@
 			break;
 			case "Digit3":
 				console.log('speed 3');
-				robotCommand('3');
+				robotCommand('3');d
 			break;
 			case "Digit4":
 				console.log('speed 4');
@@ -66,6 +89,13 @@
 				$("#hideCall").trigger("click");
 			break;
 		  }
+	   }
+	   
+	   function handleKeyUp(e) {
+			if (inMove) {
+				robotCommand('s');
+				inMove = false;
+			}
 	   }
 	   
 	   function robotCommand(c) {
@@ -90,6 +120,5 @@
 
   	<%= include remote-streams %>
 
-  	<p class="footer"><%= footer %></p>
   </body>
 </html>

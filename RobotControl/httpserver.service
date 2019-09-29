@@ -1,0 +1,14 @@
+[Unit]
+Description=Python Control HTTP Server
+Wants=network-online.target
+After=rc_car.service
+
+[Service]
+ExecStart=/usr/bin/python /home/root/rc_car/server.py
+User=root
+Restart=always
+RestartSec=1
+WorkingDirectory=/home/root/rc_car/
+
+[Install]
+WantedBy=multi-user.target
