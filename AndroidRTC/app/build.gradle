@@ -5,12 +5,12 @@ android {
         config {
             keyAlias 'key0'
             keyPassword 'km1861ol'
-            storeFile file('C:/Users/aldom/TelepresenceRobot/AndroidRTC/sign/ks.jks')
+            storeFile file('../sign/ks.jks')
             storePassword 'km1861ol'
         }
     }
     compileSdkVersion 27
-    buildToolsVersion '27.0.3'
+    buildToolsVersion '28.0.3'
     defaultConfig {
         applicationId "fr.pchab.androidrtc"
         minSdkVersion 19
