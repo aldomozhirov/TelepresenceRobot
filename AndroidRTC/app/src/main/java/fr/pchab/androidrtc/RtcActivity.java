@@ -2,11 +2,15 @@ package fr.pchab.androidrtc;
 
 import android.Manifest;
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.graphics.Point;
+import android.media.AudioManager;
 import android.opengl.GLSurfaceView;
 import android.os.Bundle;
+import android.speech.tts.TextToSpeech;
 import android.support.annotation.NonNull;
+import android.util.Log;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager.LayoutParams;
@@ -19,6 +23,7 @@ import org.webrtc.VideoRenderer;
 import org.webrtc.VideoRendererGui;
 
 import java.util.List;
+import java.util.Locale;
 
 import fr.pchab.webrtcclient.PeerConnectionParameters;
 import fr.pchab.webrtcclient.WebRtcClient;
@@ -54,6 +59,9 @@ public class RtcActivity extends Activity implements WebRtcClient.RtcListener {
 
     private static final String[] RequiredPermissions = new String[]{Manifest.permission.CAMERA, Manifest.permission.RECORD_AUDIO};
     protected PermissionChecker permissionChecker = new PermissionChecker();
+
+    private TextToSpeech textToSpeech;
+    private AudioManager audioManager;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -99,6 +107,45 @@ public class RtcActivity extends Activity implements WebRtcClient.RtcListener {
         }
 
         checkPermissions();
+
+        textToSpeech = new TextToSpeech(getApplicationContext(), new TextToSpeech.OnInitListener() {
+            @Override
+            public void onInit(int status) {
+                if (status == TextToSpeech.SUCCESS) {
+                    int ttsLang = textToSpeech.setLanguage(Locale.US);
+
+                    if (ttsLang == TextToSpeech.LANG_MISSING_DATA
+                            || ttsLang == TextToSpeech.LANG_NOT_SUPPORTED) {
+                        Log.e("TTS", "The Language is not supported!");
+                    } else {
+                        Log.i("TTS", "Language Supported.");
+                    }
+                    Log.i("TTS", "Initialization success.");
+                } else {
+                    Toast.makeText(getApplicationContext(), "TTS Initialization failed!", Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
+
+        audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+        Thread thread = new Thread() {
+            @Override
+            public void run() {
+                try {
+                    while(true) {
+                        sleep(1000);
+                        audioManager.setMode(AudioManager.MODE_IN_CALL);
+                        if (!audioManager.isSpeakerphoneOn())
+                            audioManager.setSpeakerphoneOn(true);
+                    }
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        };
+
+        thread.start();
+
     }
 
     private void checkPermissions() {
@@ -148,6 +195,10 @@ public class RtcActivity extends Activity implements WebRtcClient.RtcListener {
             client.onDestroy();
         }
         super.onDestroy();
+        if (textToSpeech != null) {
+            textToSpeech.stop();
+            textToSpeech.shutdown();
+        }
     }
 
     @Override
@@ -238,6 +289,11 @@ public class RtcActivity extends Activity implements WebRtcClient.RtcListener {
                         iv.setVisibility(View.VISIBLE);
                     }
                 });
+                textToSpeech.speak(
+                        "Brainspin team calling to Diana. Say hello to answer the call.",
+                        TextToSpeech.QUEUE_FLUSH,
+                        null
+                );
                 break;
             case "hideImage":
                 runOnUiThread(new Runnable() {
