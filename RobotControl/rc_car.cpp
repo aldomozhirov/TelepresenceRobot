@@ -18,11 +18,18 @@ using namespace std;
 sig_atomic_t volatile isrunning = 1;
 void sig_handler(int signum);
 
+Motor_Control motor;
+
+void setMotorsSpeed(double speed) {
+	motor.SetSpeed(motor.PWM_3_pin, speed);
+	motor.SetSpeed(motor.PWM_9_pin, speed);
+	motor.SetSpeed(motor.PWM_5_pin, speed);
+	motor.SetSpeed(motor.PWM_6_pin, speed);
+}
+
 int main()
 {
        signal(SIGINT, &sig_handler);
-
-       Motor_Control motor;
 
        cout << "[rc_car] Application Started" << endl;
 	   
@@ -39,60 +46,56 @@ int main()
              switch (c)
              {
              case 'w'://STRAIGHT
+					setMotorsSpeed(SPEED3);
                     motor.run(Motor3, FORWARD);
                     motor.run(Motor4, FORWARD);
                     break;
              case 'x'://REVERSE
+					setMotorsSpeed(SPEED3);
                     motor.run(Motor3, BACKWARD);
                     motor.run(Motor4, BACKWARD);
                     break;
              case 'a'://TURN LEFT
+					setMotorsSpeed(SPEED1);
                     motor.run(Motor3, FORWARD);
                     motor.run(Motor4, BACKWARD);
                     break;
              case 'd'://TURN RIGHT
+					setMotorsSpeed(SPEED1);
                     motor.run(Motor3, BACKWARD);
                     motor.run(Motor4, FORWARD);
                     break;
              case 'q'://ROTARY MOVE LEFT FORWARD
+					setMotorsSpeed(SPEED1);
                     motor.run(Motor3, FORWARD);
                     motor.run(Motor4, STOP);
                     break;
              case 'z'://ROTARY MOVE LEFT BACKWARD
+					setMotorsSpeed(SPEED1);
                     motor.run(Motor3, BACKWARD);
                     motor.run(Motor4, STOP);
                     break;
              case 'e'://ROTARY MOVE RIGHT FORWARD
+					setMotorsSpeed(SPEED1);
                     motor.run(Motor3, STOP);
                     motor.run(Motor4, FORWARD);
                     break;
              case 'c'://ROTARY MOVE RIGHT BACKWARD
+					setMotorsSpeed(SPEED1);
                     motor.run(Motor3, STOP);
                     motor.run(Motor4, BACKWARD);
                     break;
              case '1'://SET SPEED 100%
-					motor.SetSpeed(motor.PWM_3_pin, SPEED1);
-					motor.SetSpeed(motor.PWM_9_pin, SPEED1);
-                    motor.SetSpeed(motor.PWM_5_pin, SPEED1);
-                    motor.SetSpeed(motor.PWM_6_pin, SPEED1);
+					//deprecated
                     break;
              case '2'://SET SPEED 90%
-					motor.SetSpeed(motor.PWM_3_pin, SPEED2);
-					motor.SetSpeed(motor.PWM_9_pin, SPEED2);
-                    motor.SetSpeed(motor.PWM_5_pin, SPEED2);
-                    motor.SetSpeed(motor.PWM_6_pin, SPEED2);
+					//deprecated
                     break;
              case '3'://SET SPEED 80%
-					motor.SetSpeed(motor.PWM_3_pin, SPEED3);
-					motor.SetSpeed(motor.PWM_9_pin, SPEED3);
-                    motor.SetSpeed(motor.PWM_5_pin, SPEED3);
-                    motor.SetSpeed(motor.PWM_6_pin, SPEED3);
+					//deprecated
                     break;
              case '4'://SET SPEED 70%
-					motor.SetSpeed(motor.PWM_3_pin, SPEED4);
-					motor.SetSpeed(motor.PWM_9_pin, SPEED4);
-                    motor.SetSpeed(motor.PWM_5_pin, SPEED4);
-                    motor.SetSpeed(motor.PWM_6_pin, SPEED4);
+					//deprecated
                     break;
              case 's'://STOP
                     motor.run(Motor3, STOP);
