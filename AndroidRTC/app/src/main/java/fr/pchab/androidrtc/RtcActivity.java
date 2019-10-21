@@ -11,6 +11,7 @@ import android.graphics.Point;
 import android.media.AudioManager;
 import android.opengl.GLSurfaceView;
 import android.os.Bundle;
+import android.speech.RecognizerIntent;
 import android.speech.tts.TextToSpeech;
 import android.support.annotation.NonNull;
 import android.util.Log;
@@ -27,8 +28,7 @@ import org.webrtc.VideoRendererGui;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.UUID;
@@ -39,6 +39,7 @@ import fr.pchab.webrtcclient.WebRtcClient;
 public class RtcActivity extends Activity implements WebRtcClient.RtcListener {
     private final static String TAG = RtcActivity.class.getCanonicalName();
     private final static int VIDEO_CALL_SENT = 666;
+    private final static int CALL_ACCEPT = 10;
     private static final String VIDEO_CODEC_VP9 = "VP9";
     private static final String AUDIO_CODEC_OPUS = "opus";
     // Local preview screen position before call is connected.
@@ -258,8 +259,19 @@ public class RtcActivity extends Activity implements WebRtcClient.RtcListener {
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (requestCode == VIDEO_CALL_SENT) {
-            startCam();
+        switch (requestCode) {
+            case VIDEO_CALL_SENT:
+                startCam();
+                break;
+            case CALL_ACCEPT:
+                ArrayList<String> words = data.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
+                for (String word : words) {
+                    if (word.equals("hello")) {
+                        answerIncomingCall();
+                        break;
+                    }
+                }
+                break;
         }
     }
 
@@ -313,25 +325,10 @@ public class RtcActivity extends Activity implements WebRtcClient.RtcListener {
     public void onMessageReceived(final String message) {
         switch (message) {
             case "showImage":
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        iv.setVisibility(View.VISIBLE);
-                    }
-                });
-                textToSpeech.speak(
-                        "Brainspin team calling to Diana. Say hello to answer the call.",
-                        TextToSpeech.QUEUE_FLUSH,
-                        null
-                );
+                initiateIncomingCall("Diana");
                 break;
             case "hideImage":
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        iv.setVisibility(View.GONE);
-                    }
-                });
+                cancelIncomingCall();
                 break;
             default:
                 break;
@@ -410,6 +407,42 @@ public class RtcActivity extends Activity implements WebRtcClient.RtcListener {
         } catch (IOException e) {
             Log.d(TAG,"send message fail!");
         }
+    }
+
+    private void initiateIncomingCall(String name) {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                iv.setVisibility(View.VISIBLE);
+            }
+        });
+        textToSpeech.speak(
+                String.format("Brainspin team calling to %s. Say hello to answer the call.", name),
+                TextToSpeech.QUEUE_FLUSH,
+                null
+        );
+        Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
+        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
+        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.ENGLISH);
+        startActivityForResult(intent, CALL_ACCEPT);
+    }
+
+    private void answerIncomingCall() {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                iv.setVisibility(View.GONE);
+            }
+        });
+    }
+
+    private void cancelIncomingCall() {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                iv.setVisibility(View.GONE);
+            }
+        });
     }
 
 }
