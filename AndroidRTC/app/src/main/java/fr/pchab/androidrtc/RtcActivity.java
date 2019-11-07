@@ -2,10 +2,12 @@ package fr.pchab.androidrtc;
 
 import android.Manifest;
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Point;
 import android.media.AudioManager;
@@ -14,11 +16,14 @@ import android.os.Bundle;
 import android.speech.RecognizerIntent;
 import android.speech.tts.TextToSpeech;
 import android.support.annotation.NonNull;
+import android.text.Layout;
 import android.util.Log;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager.LayoutParams;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import org.json.JSONException;
@@ -60,6 +65,9 @@ public class RtcActivity extends Activity implements WebRtcClient.RtcListener {
     private VideoRendererGui.ScalingType scalingType = VideoRendererGui.ScalingType.SCALE_ASPECT_FILL;
     private GLSurfaceView vsv;
     ImageView iv;
+    LinearLayout callLayout;
+    TextView nameCallFrom;
+    TextView nameCallTo;
     private VideoRenderer.Callbacks localRender;
     private VideoRenderer.Callbacks remoteRender;
     private WebRtcClient client;
@@ -109,6 +117,11 @@ public class RtcActivity extends Activity implements WebRtcClient.RtcListener {
 
         iv = findViewById(R.id.imageView);
         iv.setVisibility(View.GONE);
+
+        callLayout = findViewById(R.id.callLayout);
+        callLayout.setVisibility(View.GONE);
+        nameCallFrom = findViewById(R.id.nameCallFrom);
+        nameCallTo = findViewById(R.id.nameCallTo);
 
         // local and remote render
         remoteRender = VideoRendererGui.create(
@@ -252,11 +265,16 @@ public class RtcActivity extends Activity implements WebRtcClient.RtcListener {
         startCam();
     }
 
-    public void call(String callId) {
-        Intent msg = new Intent(Intent.ACTION_SEND);
-        msg.putExtra(Intent.EXTRA_TEXT, mSocketAddress + callId);
-        msg.setType("text/plain");
-        startActivityForResult(Intent.createChooser(msg, "Call someone :"), VIDEO_CALL_SENT);
+    public void call(final String callId) {
+        final AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Code to connect");
+        builder.setMessage(callId);
+        builder.setPositiveButton("yes", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int id) {
+                Intent intent = new Intent(FirstActivity.this, Screen2Activity.class);
+                startActivityForResult(intent, VIDEO_CALL_SENT);
+            }
+        });
     }
 
     @Override
@@ -276,7 +294,7 @@ public class RtcActivity extends Activity implements WebRtcClient.RtcListener {
                     }
                 }
                 if (!answered) {
-                    initiateIncomingCall("Diana");
+                    initiateIncomingCall("Telepresence Robot","Diana");
                 }
                 break;
         }
@@ -332,7 +350,7 @@ public class RtcActivity extends Activity implements WebRtcClient.RtcListener {
     public void onMessageReceived(final String message) {
         switch (message) {
             case "showImage":
-                initiateIncomingCall("Diana");
+                initiateIncomingCall("Telepresence Robot", "Diana");
                 break;
             case "hideImage":
                 cancelIncomingCall();
@@ -416,16 +434,19 @@ public class RtcActivity extends Activity implements WebRtcClient.RtcListener {
         }
     }
 
-    private void initiateIncomingCall(String name) {
+    private void initiateIncomingCall(final String nameFrom, final String nameTo) {
         client.muteAudio();
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                iv.setVisibility(View.VISIBLE);
+                //iv.setVisibility(View.VISIBLE);
+                nameCallFrom.setText(nameFrom);
+                nameCallTo.setText(nameTo);
+                callLayout.setVisibility(View.VISIBLE);
             }
         });
         textToSpeech.speak(
-                String.format("Brainspin team calling to %s. Say hello to answer the call.", name),
+                String.format("%s team calling to %s. Say hello to answer the call.", nameFrom, nameTo),
                 TextToSpeech.QUEUE_FLUSH,
                 null
         );
@@ -440,7 +461,8 @@ public class RtcActivity extends Activity implements WebRtcClient.RtcListener {
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                iv.setVisibility(View.GONE);
+                //iv.setVisibility(View.GONE);
+                callLayout.setVisibility(View.GONE);
             }
         });
         try {
