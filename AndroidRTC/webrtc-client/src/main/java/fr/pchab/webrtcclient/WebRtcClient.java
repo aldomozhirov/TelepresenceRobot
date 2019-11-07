@@ -1,5 +1,6 @@
 package fr.pchab.webrtcclient;
 
+import android.net.rtp.AudioStream;
 import android.opengl.EGLContext;
 import android.util.Log;
 
@@ -10,6 +11,7 @@ import com.github.nkzawa.socketio.client.Socket;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.webrtc.AudioSource;
+import org.webrtc.AudioTrack;
 import org.webrtc.DataChannel;
 import org.webrtc.IceCandidate;
 import org.webrtc.MediaConstraints;
@@ -36,6 +38,10 @@ public class WebRtcClient {
     private PeerConnectionParameters pcParams;
     private MediaConstraints pcConstraints = new MediaConstraints();
     private MediaStream localMS;
+    private MediaStream remoteMS;
+    private AudioTrack localAudioTrack;
+    private AudioTrack remoteAudioTrack;
+    private AudioSource audioSource;
     private VideoSource videoSource;
     private RtcListener mListener;
     private Socket client;
@@ -130,6 +136,14 @@ public class WebRtcClient {
         message.put("type", type);
         message.put("payload", payload);
         client.emit("message", message);
+    }
+
+    public void muteAudio() {
+        remoteAudioTrack.setEnabled(false);
+    }
+
+    public void unmuteAudio() {
+        remoteAudioTrack.setEnabled(true);
     }
 
     private class MessageHandler {
@@ -248,6 +262,8 @@ public class WebRtcClient {
             Log.d(TAG, "onAddStream " + mediaStream.label());
             // remote streams are displayed from 1 to MAX_PEER (0 is localStream)
             mListener.onAddRemoteStream(mediaStream, endPoint + 1);
+            remoteMS = mediaStream;
+            remoteAudioTrack = remoteMS.audioTracks.get(0);
         }
 
         @Override
@@ -384,10 +400,12 @@ public class WebRtcClient {
             localMS.addTrack(factory.createVideoTrack("ARDAMSv0", videoSource));
         }
 
-        AudioSource audioSource = factory.createAudioSource(new MediaConstraints());
-        localMS.addTrack(factory.createAudioTrack("ARDAMSa0", audioSource));
+        /*audioSource = factory.createAudioSource(new MediaConstraints());
+        localAudioTrack = factory.createAudioTrack("ARDAMSa0", audioSource);
+        localMS.addTrack(localAudioTrack);*/
 
         mListener.onLocalStream(localMS);
+
     }
 
     private VideoCapturer getVideoCapturer() {

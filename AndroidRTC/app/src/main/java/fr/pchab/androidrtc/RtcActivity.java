@@ -147,6 +147,7 @@ public class RtcActivity extends Activity implements WebRtcClient.RtcListener {
             }
         });
 
+        /*
         audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
         Thread thread = new Thread() {
             @Override
@@ -165,6 +166,7 @@ public class RtcActivity extends Activity implements WebRtcClient.RtcListener {
         };
 
         thread.start();
+        */
 
         //initBluetooth();
         //bluetoothConnect();
@@ -265,11 +267,16 @@ public class RtcActivity extends Activity implements WebRtcClient.RtcListener {
                 break;
             case CALL_ACCEPT:
                 ArrayList<String> words = data.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
+                boolean answered = false;
                 for (String word : words) {
-                    if (word.equals("hello")) {
+                    if (word.toLowerCase().equals("hello")) {
                         answerIncomingCall();
+                        answered = true;
                         break;
                     }
+                }
+                if (!answered) {
+                    initiateIncomingCall("Diana");
                 }
                 break;
         }
@@ -410,6 +417,7 @@ public class RtcActivity extends Activity implements WebRtcClient.RtcListener {
     }
 
     private void initiateIncomingCall(String name) {
+        client.muteAudio();
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
@@ -421,6 +429,7 @@ public class RtcActivity extends Activity implements WebRtcClient.RtcListener {
                 TextToSpeech.QUEUE_FLUSH,
                 null
         );
+        while(textToSpeech.isSpeaking());
         Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
         intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
         intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.ENGLISH);
@@ -434,6 +443,12 @@ public class RtcActivity extends Activity implements WebRtcClient.RtcListener {
                 iv.setVisibility(View.GONE);
             }
         });
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        client.unmuteAudio();
     }
 
     private void cancelIncomingCall() {
