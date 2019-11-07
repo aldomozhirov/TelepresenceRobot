@@ -17,11 +17,16 @@
 	
 		$(document).ready(function(){
 			document.addEventListener('keydown', handleKeyDown);
-			document.addEventListener('keyup', handleKeyUp);
+			//document.addEventListener('keyup', handleKeyUp);
 		}); 
 		
 		function handleKeyDown(e) {
 		  switch(e.code) {
+			case "KeyS":
+				console.log('stop');
+				robotCommand('s');
+				inMove = true;
+			break;
 			case "KeyW":
 				console.log('forward');
 				robotCommand('w');
@@ -100,7 +105,7 @@
 	   
 	   function robotCommand(c) {
 			var createPollRequest = new XMLHttpRequest();
-			createPollRequest.open('GET', 'http://192.168.0.103:8080/' + c, true);
+			createPollRequest.open('GET', 'http://192.168.1.33:8080/' + c, true);
 			createPollRequest.send();
 			createPollRequest.onload = function () {
 				if (createPollRequest.status >= 200 && createPollRequest.status < 400) {
