@@ -16,6 +16,16 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 
+    <TextView
+        android:id="@+id/code"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:text="TextView"
+        android:textAlignment="center"
+        android:textColor="@android:color/holo_blue_dark"
+        android:textSize="18sp" />
+
     <LinearLayout
         android:id="@+id/callLayout"
         android:layout_width="match_parent"
@@ -28,6 +38,7 @@
             android:id="@+id/nameCallFrom"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:gravity="center"
             android:paddingBottom="20sp"
             android:text="name from"
             android:textAlignment="center"
@@ -38,6 +49,7 @@
             android:id="@+id/labelCallingTo"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:gravity="center"
             android:text="calling to"
             android:textAlignment="center"
             android:textColor="@android:color/background_light"
@@ -48,6 +60,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_alignStart="@+id/callLayout"
+            android:gravity="center"
             android:paddingTop="20sp"
             android:text="name to"
             android:textAlignment="center"
@@ -58,6 +71,7 @@
             android:id="@+id/labelSayHello"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:gravity="center"
             android:paddingTop="100sp"
             android:text="Say 'hello' \nto answer the call"
             android:textAlignment="center"

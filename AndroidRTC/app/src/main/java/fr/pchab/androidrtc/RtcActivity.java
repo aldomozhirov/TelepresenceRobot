@@ -2,12 +2,10 @@ package fr.pchab.androidrtc;
 
 import android.Manifest;
 import android.app.Activity;
-import android.app.AlertDialog;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Point;
 import android.media.AudioManager;
@@ -16,12 +14,10 @@ import android.os.Bundle;
 import android.speech.RecognizerIntent;
 import android.speech.tts.TextToSpeech;
 import android.support.annotation.NonNull;
-import android.text.Layout;
 import android.util.Log;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager.LayoutParams;
-import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -64,10 +60,10 @@ public class RtcActivity extends Activity implements WebRtcClient.RtcListener {
     private static final int REMOTE_HEIGHT = 100;
     private VideoRendererGui.ScalingType scalingType = VideoRendererGui.ScalingType.SCALE_ASPECT_FILL;
     private GLSurfaceView vsv;
-    ImageView iv;
-    LinearLayout callLayout;
-    TextView nameCallFrom;
-    TextView nameCallTo;
+    private TextView code;
+    private LinearLayout callLayout;
+    private TextView nameCallFrom;
+    private TextView nameCallTo;
     private VideoRenderer.Callbacks localRender;
     private VideoRenderer.Callbacks remoteRender;
     private WebRtcClient client;
@@ -84,6 +80,9 @@ public class RtcActivity extends Activity implements WebRtcClient.RtcListener {
     private BluetoothDevice btDevice;
     private BluetoothSocket btSocket;
     private OutputStream outStream;
+
+    private String currentNameTo;
+    private String currentNameFrom;
 
     // Well known SPP UUID, after run intel SPP_loopback.py, you can see this in edison bluetooth
     private static final UUID SSP_UUID = UUID.fromString("00001101-0000-1000-8000-00805f9b34fb");
@@ -115,9 +114,8 @@ public class RtcActivity extends Activity implements WebRtcClient.RtcListener {
             }
         });
 
-        iv = findViewById(R.id.imageView);
-        iv.setVisibility(View.GONE);
-
+        code = findViewById(R.id.code);
+        code.setVisibility(View.GONE);
         callLayout = findViewById(R.id.callLayout);
         callLayout.setVisibility(View.GONE);
         nameCallFrom = findViewById(R.id.nameCallFrom);
@@ -160,7 +158,7 @@ public class RtcActivity extends Activity implements WebRtcClient.RtcListener {
             }
         });
 
-        /*
+
         audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
         Thread thread = new Thread() {
             @Override
@@ -179,7 +177,6 @@ public class RtcActivity extends Activity implements WebRtcClient.RtcListener {
         };
 
         thread.start();
-        */
 
         //initBluetooth();
         //bluetoothConnect();
@@ -263,18 +260,23 @@ public class RtcActivity extends Activity implements WebRtcClient.RtcListener {
     public void answer(String callerId) throws JSONException {
         client.sendMessage(callerId, "init", null);
         startCam();
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                code.setVisibility(View.GONE);
+            }
+        });
     }
 
     public void call(final String callId) {
-        final AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle("Code to connect");
-        builder.setMessage(callId);
-        builder.setPositiveButton("yes", new DialogInterface.OnClickListener() {
-            public void onClick(DialogInterface dialog, int id) {
-                Intent intent = new Intent(FirstActivity.this, Screen2Activity.class);
-                startActivityForResult(intent, VIDEO_CALL_SENT);
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                code.setText(callId);
+                code.setVisibility(View.VISIBLE);
             }
         });
+        startCam();
     }
 
     @Override
@@ -294,7 +296,7 @@ public class RtcActivity extends Activity implements WebRtcClient.RtcListener {
                     }
                 }
                 if (!answered) {
-                    initiateIncomingCall("Telepresence Robot","Diana");
+                    initiateIncomingCall(currentNameFrom, currentNameTo);
                 }
                 break;
         }
@@ -435,18 +437,19 @@ public class RtcActivity extends Activity implements WebRtcClient.RtcListener {
     }
 
     private void initiateIncomingCall(final String nameFrom, final String nameTo) {
+        currentNameFrom = nameFrom;
+        currentNameTo = nameTo;
         client.muteAudio();
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                //iv.setVisibility(View.VISIBLE);
                 nameCallFrom.setText(nameFrom);
                 nameCallTo.setText(nameTo);
                 callLayout.setVisibility(View.VISIBLE);
             }
         });
         textToSpeech.speak(
-                String.format("%s team calling to %s. Say hello to answer the call.", nameFrom, nameTo),
+                String.format("%s calling to %s. Say hello to answer the call.", nameFrom, nameTo),
                 TextToSpeech.QUEUE_FLUSH,
                 null
         );
@@ -461,7 +464,6 @@ public class RtcActivity extends Activity implements WebRtcClient.RtcListener {
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                //iv.setVisibility(View.GONE);
                 callLayout.setVisibility(View.GONE);
             }
         });
@@ -477,7 +479,7 @@ public class RtcActivity extends Activity implements WebRtcClient.RtcListener {
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                iv.setVisibility(View.GONE);
+                callLayout.setVisibility(View.GONE);
             }
         });
     }
